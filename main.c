@@ -97,6 +97,20 @@ void cmd_run(char *args[], int nargs) {
     }
 }
 
+void cmd_workdir(char *args[], int nargs) {
+    if (nargs < 2) {
+        printf("Erro: uso correto e 'workdir <diretorio>'\n");
+    }
+
+    int resultado = chdir(args[1]);
+
+    if (resultado == 0) {
+        perror("Erro ao alterar diretorio");
+    } else {
+        printf("Diretorio de trabalho alterado para '%s'\n", args[1]);
+    }
+}
+
 int main(int argc, char *argv[]) {
     (void)argc;
     (void)argv;
@@ -130,6 +144,8 @@ int main(int argc, char *argv[]) {
             cmd_task(args, nargs);
         } else if (strcmp(args[0], "run") == 0) {
             cmd_run(args, nargs);
+        } else if (strcmp(args[0], "workdir") == 0) {
+            cmd_workdir(args, nargs);
         } else {
             printf("Comando desconhecido: %s\n", args[0]);
         }
