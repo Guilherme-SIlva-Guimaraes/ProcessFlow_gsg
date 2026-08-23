@@ -18,6 +18,17 @@ typedef struct {
 Task tasks[MAX_TASKS];
 int task_count = 0;
 
+typedef struct {
+    int job_id;
+    pid_t pid;
+    char name[MAX_NAME];
+    int finished;
+    int exit_code;
+} Job;
+
+Job jobs[MAX_TASKS];
+int job_count = 0;
+
 int parse_line(char *line, char *args[]) {
     int count = 0;
     char *token = strtok(line, " ");
@@ -262,6 +273,101 @@ void cmd_run(char *args[], int nargs) {
     }
 }
 
+void cmd_start(char *args[], int nargs) {
+    if (nargs < 2) {
+        printf("Erro: uso correto e 'start <nome>'\n");
+        return;
+    }
+
+    Task *t = find_task(args[1]);
+    if (t == NULL) {
+        printf("Erro: tarefa '%s' nao encontrada\n", args[1]);
+        return;
+    }
+
+    if (job_count >= MAX_TASKS) {
+        printf("Erro: limite de jobs em background atingido\n");
+        return;
+    }
+
+    pid_t pid = fork();
+
+    if (pid < 0) {
+        perror("Erro ao criar processo (fork)");
+        return;
+    } else if (pid == 0) {
+        execvp(t->exec_args[0], t->exec_args);
+        fprintf(stderr, "Erro: nao foi possivel executar '%s': ", t->exec_args[0]);
+        perror("");
+        exit(1);
+    } else {
+        int id = job_count + 1;
+        jobs[job_count].job_id = id;
+        jobs[job_count].pid = pid;
+        strncpy(jobs[job_count].name, args[1], MAX_NAME - 1);
+        jobs[job_count].name[MAX_NAME - 1] = '\0';
+        jobs[job_count].finished = 0;
+        jobs[job_count].exit_code = 0;
+        job_count++;
+        printf("[%d] %d\n", id, (int)pid);
+    }
+}
+
+void cmd_jobs(void) {
+    if (job_count == 0) {
+        printf("Nenhum job em background\n");
+        return;
+    }
+
+    for (int i = 0; i < job_count; i++) {
+        if (!jobs[i].finished) {
+            int status;
+            pid_t r = waitpid(jobs[i].pid, &status, WNOHANG);
+            if (r == jobs[i].pid) {
+                jobs[i].finished = 1;
+                if (WIFEXITED(status)) {
+                    jobs[i].exit_code = WEXITSTATUS(status);
+                }
+            }
+        }
+
+        if (jobs[i].finished) {
+            printf("[%d] %d %s Concluido codigo %d\n", jobs[i].job_id, (int)jobs[i].pid, jobs[i].name, jobs[i].exit_code);
+        } else {
+            printf("[%d] %d %s Rodando\n", jobs[i].job_id, (int)jobs[i].pid, jobs[i].name);
+        }
+    }
+}
+
+void cmd_wait(char *args[], int nargs) {
+    if (nargs < 2) {
+        printf("Erro: uso correto e 'wait <jobId>'\n");
+        return;
+    }
+
+    int id = atoi(args[1]);
+
+    for (int i = 0; i < job_count; i++) {
+        if (jobs[i].job_id == id) {
+            if (jobs[i].finished) {
+                printf("Job %d (%s) ja tinha terminado, codigo de saida %d\n", id, jobs[i].name, jobs[i].exit_code);
+                return;
+            }
+
+            int status;
+            waitpid(jobs[i].pid, &status, 0);
+            jobs[i].finished = 1;
+            if (WIFEXITED(status)) {
+                jobs[i].exit_code = WEXITSTATUS(status);
+            }
+            printf("Job %d (%s) terminou com codigo de saida %d\n", id, jobs[i].name, jobs[i].exit_code);
+            return;
+        }
+    }
+
+    printf("Erro: job %d nao encontrado\n", id);
+}
+
 void cmd_workdir(char *args[], int nargs) {
     if (nargs < 2) {
         printf("Erro: uso correto e 'workdir <diretorio>'\n");
@@ -311,6 +417,12 @@ int main(int argc, char *argv[]) {
             cmd_run(args, nargs);
         } else if (strcmp(args[0], "workdir") == 0) {
             cmd_workdir(args, nargs);
+        } else if (strcmp(args[0], "start") == 0) {
+            cmd_start(args, nargs);
+        } else if (strcmp(args[0], "jobs") == 0) {
+            cmd_jobs();
+        } else if (strcmp(args[0], "wait") == 0) {
+            cmd_wait(args, nargs);
         } else {
             printf("Comando desconhecido: %s\n", args[0]);
         }
