@@ -65,15 +65,13 @@ void cmd_task(char *args[], int nargs) {
     printf("Tarefa '%s' cadastrada.\n", args[1]);
 }
 
-void cmd_run(char *args[], int nargs) {
-    if (nargs < 2) {
-        printf("Erro: uso correto e 'run <nome>'\n");
-        return;
-    }
-
-    Task *t = find_task(args[1]);
+// Executa uma unica tarefa ja cadastrada: fork + execvp + waitpid, imprimindo
+// o codigo de saida. Usada tanto pelo 'run <nome>' simples quanto pelo
+// 'run sequential' (uma tarefa de cada vez, esperando terminar).
+void run_single_task(const char *nome) {
+    Task *t = find_task(nome);
     if (t == NULL) {
-        printf("Erro: tarefa '%s' nao encontrada\n", args[1]);
+        printf("Erro: tarefa '%s' nao encontrada\n", nome);
         return;
     }
 
@@ -92,9 +90,80 @@ void cmd_run(char *args[], int nargs) {
         int status;
         waitpid(pid, &status, 0);
         if (WIFEXITED(status)) {
-            printf("Tarefa '%s' terminou com codigo de saida %d\n", args[1], WEXITSTATUS(status));
+            printf("Tarefa '%s' terminou com codigo de saida %d\n", nome, WEXITSTATUS(status));
         }
     }
+}
+
+void cmd_run(char *args[], int nargs) {
+    if (nargs < 2) {
+        printf("Erro: uso correto e 'run <nome>' ou 'run sequential|parallel <nome1> [nome2 ...]'\n");
+        return;
+    }
+
+    if (strcmp(args[1], "sequential") == 0) {
+        if (nargs < 3) {
+            printf("Erro: uso correto e 'run sequential <nome1> [nome2 ...]'\n");
+            return;
+        }
+        // Sequencial: chama run_single_task uma vez por tarefa, e como essa
+        // funcao ja faz o waitpid antes de retornar, a proxima tarefa da
+        // lista so comeca depois que a anterior terminou de verdade.
+        for (int i = 2; i < nargs; i++) {
+            run_single_task(args[i]);
+        }
+        return;
+    }
+
+    if (strcmp(args[1], "parallel") == 0) {
+        if (nargs < 3) {
+            printf("Erro: uso correto e 'run parallel <nome1> [nome2 ...]'\n");
+            return;
+        }
+
+        // Paralelo: primeiro da fork em TODAS as tarefas (sem esperar
+        // nenhuma), guardando os PIDs; so depois que todas ja foram
+        // iniciadas e que a gente espera (waitpid) uma por uma.
+        pid_t pids[MAX_ARGS];
+        char *names[MAX_ARGS];
+        int total = 0;
+
+        for (int i = 2; i < nargs; i++) {
+            Task *t = find_task(args[i]);
+            if (t == NULL) {
+                printf("Erro: tarefa '%s' nao encontrada\n", args[i]);
+                continue;
+            }
+
+            pid_t pid = fork();
+
+            if (pid < 0) {
+                perror("Erro ao criar processo (fork)");
+                continue;
+            } else if (pid == 0) {
+                execvp(t->exec_args[0], t->exec_args);
+                fprintf(stderr, "Erro: nao foi possivel executar '%s': ", t->exec_args[0]);
+                perror("");
+                exit(1);
+            } else {
+                pids[total] = pid;
+                names[total] = args[i];
+                total++;
+            }
+        }
+
+        for (int i = 0; i < total; i++) {
+            int status;
+            waitpid(pids[i], &status, 0);
+            if (WIFEXITED(status)) {
+                printf("Tarefa '%s' (pid %d) terminou com codigo de saida %d\n", names[i], pids[i], WEXITSTATUS(status));
+            }
+        }
+        return;
+    }
+
+    // run <nome> sozinho - comportamento original, uma tarefa so
+    run_single_task(args[1]);
 }
 
 void cmd_workdir(char *args[], int nargs) {
