@@ -11,7 +11,7 @@
 
 typedef struct {
     char name[MAX_NAME];
-    char *exec_args[MAX_ARGS]; // exec_args[0] = programa, resto = argumentos, terminado em NULL
+    char *exec_args[MAX_ARGS]; // exec_args[0] = programa, resto = argumentos, terminado em NULL(ajuda de IA)
 } Task;
 
 Task tasks[MAX_TASKS];
@@ -54,7 +54,7 @@ void cmd_task(char *args[], int nargs) {
     // args[2] em diante = programa + argumentos do programa.
     // Usamos strdup porque args[] aponta pra dentro de 'line', que sera
     // reaproveitada na proxima iteracao do loop - sem copiar, os dados
-    // dessa tarefa seriam corrompidos assim que o usuario digitasse outra linha.
+    // dessa tarefa seriam corrompidos assim que o usuario digitasse outra linha(ajude de IA )
     int j = 0;
     for (int i = 2; i < nargs; i++) {
         t->exec_args[j++] = strdup(args[i]);
@@ -100,14 +100,14 @@ void cmd_run(char *args[], int nargs) {
 void cmd_workdir(char *args[], int nargs) {
     if (nargs < 2) {
         printf("Erro: uso correto e 'workdir <diretorio>'\n");
+        return;
     }
 
     int resultado = chdir(args[1]);
-
     if (resultado == 0) {
-        perror("Erro ao alterar diretorio");
-    } else {
         printf("Diretorio de trabalho alterado para '%s'\n", args[1]);
+    } else {
+        perror("Erro ao alterar diretorio");
     }
 }
 
