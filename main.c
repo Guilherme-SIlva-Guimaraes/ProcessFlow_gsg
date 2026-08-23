@@ -382,21 +382,28 @@ void cmd_workdir(char *args[], int nargs) {
     }
 }
 
-int main(int argc, char *argv[]) {
-    (void)argc;
-    (void)argv;
+void run_loop(FILE *input, int interativo) {
     char line[MAX_LINE];
 
     while (1) {
-        printf("processflow> ");
-        fflush(stdout);
+        if (interativo) {
+            printf("processflow> ");
+            fflush(stdout);
+        }
 
-        if (fgets(line, sizeof(line), stdin) == NULL) {
-            printf("\n");
+        if (fgets(line, sizeof(line), input) == NULL) {
+            if (interativo) {
+                printf("\n");
+            }
             break;
         }
 
         line[strcspn(line, "\n")] = '\0';
+
+        if (!interativo) {
+            printf("%s\n", line);
+            fflush(stdout);
+        }
 
         if (strlen(line) == 0) {
             continue;
@@ -426,6 +433,20 @@ int main(int argc, char *argv[]) {
         } else {
             printf("Comando desconhecido: %s\n", args[0]);
         }
+    }
+}
+
+int main(int argc, char *argv[]) {
+    if (argc >= 2) {
+        FILE *arquivo = fopen(argv[1], "r");
+        if (arquivo == NULL) {
+            perror("Erro ao abrir arquivo de workflow");
+            return 1;
+        }
+        run_loop(arquivo, 0);
+        fclose(arquivo);
+    } else {
+        run_loop(stdin, 1);
     }
 
     return 0;
