@@ -12,7 +12,7 @@
 
 typedef struct {
     char name[MAX_NAME];
-    char *exec_args[MAX_ARGS]; // exec_args[0] = programa, resto = argumentos, terminado em NULL(ajuda de IA)
+    char *exec_args[MAX_ARGS];
 } Task;
 
 Task tasks[MAX_TASKS];
@@ -52,10 +52,6 @@ void cmd_task(char *args[], int nargs) {
     strncpy(t->name, args[1], MAX_NAME - 1);
     t->name[MAX_NAME - 1] = '\0';
 
-    // args[2] em diante = programa + argumentos do programa.
-    // Usamos strdup porque args[] aponta pra dentro de 'line', que sera
-    // reaproveitada na proxima iteracao do loop - sem copiar, os dados
-    // dessa tarefa seriam corrompidos assim que o usuario digitasse outra linha(ajude de IA )
     int j = 0;
     for (int i = 2; i < nargs; i++) {
         t->exec_args[j++] = strdup(args[i]);
@@ -66,9 +62,6 @@ void cmd_task(char *args[], int nargs) {
     printf("Tarefa '%s' cadastrada.\n", args[1]);
 }
 
-// Executa uma unica tarefa ja cadastrada: fork + execvp + waitpid, imprimindo
-// o codigo de saida. Usada tanto pelo 'run <nome>' simples quanto pelo
-// 'run sequential' (uma tarefa de cada vez, esperando terminar).
 void run_single_task(const char *nome, char *modo, char *arquivo_redirecionamento) {
     Task *t = find_task(nome);
     if (t == NULL) {
@@ -82,12 +75,10 @@ void run_single_task(const char *nome, char *modo, char *arquivo_redirecionament
         perror("Erro ao criar processo (fork)");
         return;
     } else if (pid == 0) {
-        // Processo filho: aqui configuramos o redirecionamento antes do execvp.
         if (modo != NULL && arquivo_redirecionamento != NULL) {
             int fd = -1;
             int destino = STDOUT_FILENO;
 
-            // Aqui o filho abre o arquivo informado pelo usuario.
             if (strcmp(modo, "output") == 0) {
                 fd = open(arquivo_redirecionamento, O_WRONLY | O_CREAT | O_TRUNC, 0644);
             } else if (strcmp(modo, "append") == 0) {
@@ -102,14 +93,11 @@ void run_single_task(const char *nome, char *modo, char *arquivo_redirecionament
                 exit(1);
             }
 
-            // Aqui o descritor aberto substitui um descritor padrao do processo.
             dup2(fd, destino);
             close(fd);
         }
 
-        // Aqui o execvp troca o processo filho pelo programa da tarefa.
         execvp(t->exec_args[0], t->exec_args);
-        // So chega aqui se o execvp falhou
         fprintf(stderr, "Erro: nao foi possivel executar '%s': ", t->exec_args[0]);
         perror("");
         exit(1);
@@ -133,11 +121,85 @@ void cmd_run(char *args[], int nargs) {
             printf("Erro: uso correto e 'run sequential <nome1> [nome2 ...]'\n");
             return;
         }
-        // Sequencial: chama run_single_task uma vez por tarefa, e como essa
-        // funcao ja faz o waitpid antes de retornar, a proxima tarefa da
-        // lista so comeca depois que a anterior terminou de verdade.
         for (int i = 2; i < nargs; i++) {
             run_single_task(args[i], NULL, NULL);
+        }
+        return;
+    }
+
+    if (strcmp(args[1], "pipe") == 0) {
+        if (nargs < 4) {
+            printf("Erro: uso correto e 'run pipe <nome1> <nome2> [nome3 ...]'\n");
+            return;
+        }
+
+        int n = nargs - 2;
+        Task *pipeline_tasks[MAX_ARGS];
+        pid_t pids[MAX_ARGS];
+        char *names[MAX_ARGS];
+        int pipefds[2 * (MAX_ARGS - 1)];
+
+        for (int i = 0; i < n; i++) {
+            Task *t = find_task(args[i + 2]);
+            if (t == NULL) {
+                printf("Erro: tarefa '%s' nao encontrada\n", args[i + 2]);
+                return;
+            }
+            pipeline_tasks[i] = t;
+            names[i] = args[i + 2];
+        }
+
+        for (int i = 0; i < n - 1; i++) {
+            if (pipe(pipefds + i * 2) < 0) {
+                perror("Erro ao criar pipe");
+                for (int j = 0; j < i * 2; j++) {
+                    close(pipefds[j]);
+                }
+                return;
+            }
+        }
+
+        int total = 0;
+        for (int i = 0; i < n; i++) {
+            pid_t pid = fork();
+
+            if (pid < 0) {
+                perror("Erro ao criar processo (fork)");
+                continue;
+            } else if (pid == 0) {
+                if (i > 0) {
+                    dup2(pipefds[(i - 1) * 2], STDIN_FILENO);
+                }
+
+                if (i < n - 1) {
+                    dup2(pipefds[i * 2 + 1], STDOUT_FILENO);
+                }
+
+                for (int j = 0; j < 2 * (n - 1); j++) {
+                    close(pipefds[j]);
+                }
+
+                execvp(pipeline_tasks[i]->exec_args[0], pipeline_tasks[i]->exec_args);
+                fprintf(stderr, "Erro: nao foi possivel executar '%s': ", pipeline_tasks[i]->exec_args[0]);
+                perror("");
+                exit(1);
+            } else {
+                pids[total] = pid;
+                total++;
+            }
+        }
+
+        //fechar so os indices pares (i += 2) fechava apenas as pontas de leitura dos pipes, deixando as pontas de escrita abertas no processo pai. Isso travava o programa, porque o ultimo processo do pipeline nunca recebia o EOF (so recebe quando TODAS as copias da ponta de escrita, em todos os processos, forem fechadas). A correcao fecha todos os indices, pares e impares.
+        for (int i = 0; i < 2 * (n - 1); i++) {
+            close(pipefds[i]);
+        }
+
+        for (int i = 0; i < total; i++) {
+            int status;
+            waitpid(pids[i], &status, 0);
+            if (WIFEXITED(status)) {
+                printf("Tarefa '%s' (pid %d) terminou com codigo de saida %d\n", names[i], pids[i], WEXITSTATUS(status));
+            }
         }
         return;
     }
@@ -148,9 +210,6 @@ void cmd_run(char *args[], int nargs) {
             return;
         }
 
-        // Paralelo: primeiro da fork em TODAS as tarefas (sem esperar
-        // nenhuma), guardando os PIDs; so depois que todas ja foram
-        // iniciadas e que a gente espera (waitpid) uma por uma.
         pid_t pids[MAX_ARGS];
         char *names[MAX_ARGS];
         int total = 0;
@@ -189,7 +248,6 @@ void cmd_run(char *args[], int nargs) {
         return;
     }
 
-    // run <nome> sozinho ou com redirecionamento simples
     if (nargs >= 3 &&
         (strcmp(args[2], "output") == 0 ||
          strcmp(args[2], "append") == 0 ||
