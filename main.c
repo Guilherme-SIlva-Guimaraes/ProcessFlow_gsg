@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 
 #define MAX_ARGS 64
 #define MAX_TASKS 64
@@ -68,7 +69,7 @@ void cmd_task(char *args[], int nargs) {
 // Executa uma unica tarefa ja cadastrada: fork + execvp + waitpid, imprimindo
 // o codigo de saida. Usada tanto pelo 'run <nome>' simples quanto pelo
 // 'run sequential' (uma tarefa de cada vez, esperando terminar).
-void run_single_task(const char *nome) {
+void run_single_task(const char *nome, char *modo, char *arquivo_redirecionamento) {
     Task *t = find_task(nome);
     if (t == NULL) {
         printf("Erro: tarefa '%s' nao encontrada\n", nome);
@@ -81,6 +82,32 @@ void run_single_task(const char *nome) {
         perror("Erro ao criar processo (fork)");
         return;
     } else if (pid == 0) {
+        // Processo filho: aqui configuramos o redirecionamento antes do execvp.
+        if (modo != NULL && arquivo_redirecionamento != NULL) {
+            int fd = -1;
+            int destino = STDOUT_FILENO;
+
+            // Aqui o filho abre o arquivo informado pelo usuario.
+            if (strcmp(modo, "output") == 0) {
+                fd = open(arquivo_redirecionamento, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+            } else if (strcmp(modo, "append") == 0) {
+                fd = open(arquivo_redirecionamento, O_WRONLY | O_CREAT | O_APPEND, 0644);
+            } else if (strcmp(modo, "input") == 0) {
+                fd = open(arquivo_redirecionamento, O_RDONLY);
+                destino = STDIN_FILENO;
+            }
+
+            if (fd == -1) {
+                perror("Erro ao abrir arquivo para redirecionamento");
+                exit(1);
+            }
+
+            // Aqui o descritor aberto substitui um descritor padrao do processo.
+            dup2(fd, destino);
+            close(fd);
+        }
+
+        // Aqui o execvp troca o processo filho pelo programa da tarefa.
         execvp(t->exec_args[0], t->exec_args);
         // So chega aqui se o execvp falhou
         fprintf(stderr, "Erro: nao foi possivel executar '%s': ", t->exec_args[0]);
@@ -110,7 +137,7 @@ void cmd_run(char *args[], int nargs) {
         // funcao ja faz o waitpid antes de retornar, a proxima tarefa da
         // lista so comeca depois que a anterior terminou de verdade.
         for (int i = 2; i < nargs; i++) {
-            run_single_task(args[i]);
+            run_single_task(args[i], NULL, NULL);
         }
         return;
     }
@@ -162,8 +189,19 @@ void cmd_run(char *args[], int nargs) {
         return;
     }
 
-    // run <nome> sozinho - comportamento original, uma tarefa so
-    run_single_task(args[1]);
+    // run <nome> sozinho ou com redirecionamento simples
+    if (nargs >= 3 &&
+        (strcmp(args[2], "output") == 0 ||
+         strcmp(args[2], "append") == 0 ||
+         strcmp(args[2], "input") == 0)) {
+        if (nargs < 4) {
+            printf("Erro: uso correto e 'run <nome> output|append|input <arquivo>'\n");
+            return;
+        }
+        run_single_task(args[1], args[2], args[3]);
+    } else {
+        run_single_task(args[1], NULL, NULL);
+    }
 }
 
 void cmd_workdir(char *args[], int nargs) {
