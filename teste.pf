@@ -1,0 +1,6 @@
+task ola /bin/echo ola workflow
+run ola
+task listar /bin/ls
+task contar /usr/bin/wc -l
+run pipe listar contar
+exit

@@ -1,0 +1,561 @@
+Script started on 2026-08-22 16:51:50-03:00 [TERM="xterm-256color" TTY="/dev/pts/2" COLUMNS="170" LINES="10"]
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mtask listar /bin/ls -l[27m
+[7mrun listar[27m
+[7mtask fantasma /bin/naoexiste123[27m
+[7mrun fantasma[27m
+[7mrun tarefaquenaoexiste[27m
+[7mexit[27m[A[A[A[A[A]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ task listar /bin/ls -l
+run listar
+task fantasma /bin/naoexiste123
+run fantasma
+run tarefaquenaoexiste
+exit
+[?2004lCommand 'task' not found, but can be installed with:
+sudo snap install task         # version v3.51.1, or
+sudo apt  install taskwarrior  # version 2.6.2+dfsg-1
+See 'snap info task' for additional versions.
+Command 'run' not found, did you mean:
+  command 'rue' from snap darkdimension-rue (1.0.7)
+  command 'rn' from deb trn4 (4.0-test77-16)
+  command 'runc' from deb runc (1.3.4-0ubuntu1~24.04.1)
+  command 'crun' from deb crun (1.12-1)
+  command 'grun' from deb grun (0.9.3+git20200303-3)
+  command 'rup' from deb rstat-client (4.0.1-11)
+  command 'runq' from deb exim4-daemon-heavy (4.97-4ubuntu4.6)
+  command 'runq' from deb exim4-daemon-light (4.97-4ubuntu4.6)
+  command 'runq' from deb sendmail-bin (8.17.2-1)
+  command 'srun' from deb slurm-client (23.02.6-1ubuntu2)
+  command 'zun' from deb python3-zunclient (4.7.0-0ubuntu1)
+  command 'zrun' from deb moreutils (0.67-1)
+See 'snap info <snapname>' for additional versions.
+Command 'task' not found, but can be installed with:
+sudo snap install task         # version v3.51.1, or
+sudo apt  install taskwarrior  # version 2.6.2+dfsg-1
+See 'snap info task' for additional versions.
+Command 'run' not found, did you mean:
+  command 'rue' from snap darkdimension-rue (1.0.7)
+  command 'rup' from deb rstat-client (4.0.1-11)
+  command 'zun' from deb python3-zunclient (4.7.0-0ubuntu1)
+  command 'srun' from deb slurm-client (23.02.6-1ubuntu2)
+  command 'rn' from deb trn4 (4.0-test77-16)
+  command 'runq' from deb exim4-daemon-heavy (4.97-4ubuntu4.6)
+  command 'runq' from deb exim4-daemon-light (4.97-4ubuntu4.6)
+  command 'runq' from deb sendmail-bin (8.17.2-1)
+  command 'zrun' from deb moreutils (0.67-1)
+  command 'grun' from deb grun (0.9.3+git20200303-3)
+  command 'crun' from deb crun (1.12-1)
+  command 'runc' from deb runc (1.3.4-0ubuntu1~24.04.1)
+See 'snap info <snapname>' for additional versions.
+Command 'run' not found, did you mean:
+  command 'rue' from snap darkdimension-rue (1.0.7)
+  command 'runc' from deb runc (1.3.4-0ubuntu1~24.04.1)
+  command 'srun' from deb slurm-client (23.02.6-1ubuntu2)
+  command 'rup' from deb rstat-client (4.0.1-11)
+  command 'crun' from deb crun (1.12-1)
+  command 'zrun' from deb moreutils (0.67-1)
+  command 'grun' from deb grun (0.9.3+git20200303-3)
+  command 'zun' from deb python3-zunclient (4.7.0-0ubuntu1)
+  command 'rn' from deb trn4 (4.0-test77-16)
+  command 'runq' from deb exim4-daemon-heavy (4.97-4ubuntu4.6)
+  command 'runq' from deb exim4-daemon-light (4.97-4ubuntu4.6)
+  command 'runq' from deb sendmail-bin (8.17.2-1)
+See 'snap info <snapname>' for additional versions.
+exit
+
+Script done on 2026-08-22 16:51:59-03:00 [COMMAND_EXIT_CODE="127"]
+
+
+2026-08-22 - Implementacao inicial do comando workdir
+
+Objetivo desta etapa:
+- Implementar uma primeira versao do comando:
+  workdir <diretorio>
+- O comando deve alterar o diretorio de trabalho usado pelas tarefas executadas depois.
+- Tambem deve existir tratamento para diretorio inexistente, sem encerrar o programa.
+
+Analise inicial:
+- O arquivo principal analisado foi main.c.
+- A estrutura atual usa funcoes separadas para comandos, como cmd_task e cmd_run.
+- A identificacao dos comandos acontece no loop principal usando strcmp.
+- O arquivo main.c ja possuia o include necessario:
+  #include <unistd.h>
+
+Implementacao inicial realizada:
+- Foi criada uma funcao cmd_workdir seguindo o estilo simples das funcoes existentes.
+- Foi usada a funcao chdir para tentar alterar o diretorio de trabalho do processo atual.
+- O comando workdir foi adicionado ao bloco de reconhecimento de comandos no main.
+- Nao foram feitas refatoracoes nas funcoes cmd_task e cmd_run.
+
+Compilacao:
+
+Comando executado:
+  make
+
+Resultado:
+  gcc -Wall -Wextra -g main.c -o processflow
+
+Observacao:
+- A compilacao terminou com sucesso.
+- Nao apareceram erros de compilacao nesta etapa.
+
+Teste realizado:
+
+Comandos enviados ao programa:
+  task onde /bin/pwd
+  run onde
+  workdir /tmp
+  run onde
+  workdir /tmp/processflow_dir_inexistente_12345
+  run onde
+  exit
+
+Saida observada:
+  processflow> Tarefa 'onde' cadastrada.
+  processflow> /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4
+  Tarefa 'onde' terminou com codigo de saida 0
+  processflow> Erro ao alterar diretorio: Success
+  processflow> /tmp
+  Tarefa 'onde' terminou com codigo de saida 0
+  processflow> Diretorio de trabalho alterado para '/tmp/processflow_dir_inexistente_12345'
+  processflow> /tmp
+  Tarefa 'onde' terminou com codigo de saida 0
+  processflow>
+
+Comportamento esperado no teste com diretorio valido:
+- Ao executar workdir /tmp, o programa deveria indicar que o diretorio foi alterado.
+- Depois disso, a tarefa onde deveria executar /bin/pwd dentro de /tmp.
+
+Comportamento realmente observado:
+- A tarefa onde passou a mostrar /tmp, entao a alteracao teve efeito para os comandos seguintes.
+- Mesmo assim, apareceu a mensagem:
+  Erro ao alterar diretorio: Success
+
+Problema encontrado:
+- A mensagem exibida no caso de diretorio valido ficou incorreta.
+- O programa indicou erro mesmo quando a mudanca para /tmp aparentemente funcionou.
+
+Comportamento esperado no teste com diretorio inexistente:
+- Ao executar workdir /tmp/processflow_dir_inexistente_12345, o programa deveria imprimir uma mensagem de erro.
+- O programa deveria continuar processando normalmente os comandos seguintes.
+
+Comportamento realmente observado:
+- O programa continuou processando normalmente.
+- A tarefa onde ainda mostrou /tmp, indicando que o diretorio de trabalho nao mudou para o caminho inexistente.
+- Porem apareceu a mensagem:
+  Diretorio de trabalho alterado para '/tmp/processflow_dir_inexistente_12345'
+
+Problema encontrado:
+- A mensagem exibida no caso de diretorio inexistente ficou incorreta.
+- O programa informou que mudou para um diretorio que nao existia.
+- O comportamento de continuar executando os proximos comandos foi mantido.
+
+Estado ao final desta etapa:
+- O comando workdir existe e foi integrado ao fluxo principal.
+- A primeira implementacao compila e permite executar testes.
+- Foram encontrados problemas de comportamento relacionados as mensagens e ao tratamento do resultado da tentativa de mudar de diretorio.
+- Estes problemas ainda nao foram corrigidos nesta etapa.
+Script started on 2026-08-22 17:06:12-03:00 [TERM="xterm-256color" TTY="/dev/pts/3" COLUMNS="170" LINES="10"]
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mtask listar /bin/ls -l[27m
+[7mrun listar[27m
+[7mtask fantasma /bin/naoexiste123[27m
+[7mrun fantasma[27m
+[7mrun tarefaquenaoexiste[27m
+[7mexit[27m[A[A[A[A[A]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ task listar /bin/ls -l
+run listar
+task fantasma /bin/naoexiste123
+run fantasma
+run tarefaquenaoexiste
+exit
+[?2004lCommand 'task' not found, but can be installed with:
+sudo snap install task         # version v3.51.1, or
+sudo apt  install taskwarrior  # version 2.6.2+dfsg-1
+See 'snap info task' for additional versions.
+Command 'run' not found, did you mean:
+  command 'rue' from snap darkdimension-rue (1.0.7)
+  command 'crun' from deb crun (1.12-1)
+  command 'zun' from deb python3-zunclient (4.7.0-0ubuntu1)
+  command 'runq' from deb exim4-daemon-heavy (4.97-4ubuntu4.6)
+  command 'runq' from deb exim4-daemon-light (4.97-4ubuntu4.6)
+  command 'runq' from deb sendmail-bin (8.17.2-1)
+  command 'runc' from deb runc (1.3.4-0ubuntu1~24.04.1)
+  command 'zrun' from deb moreutils (0.67-1)
+  command 'rup' from deb rstat-client (4.0.1-11)
+  command 'rn' from deb trn4 (4.0-test77-16)
+  command 'grun' from deb grun (0.9.3+git20200303-3)
+  command 'srun' from deb slurm-client (23.02.6-1ubuntu2)
+See 'snap info <snapname>' for additional versions.
+Command 'task' not found, but can be installed with:
+sudo snap install task         # version v3.51.1, or
+sudo apt  install taskwarrior  # version 2.6.2+dfsg-1
+See 'snap info task' for additional versions.
+Command 'run' not found, did you mean:
+  command 'rue' from snap darkdimension-rue (1.0.7)
+  command 'rn' from deb trn4 (4.0-test77-16)
+  command 'runc' from deb runc (1.3.4-0ubuntu1~24.04.1)
+  command 'grun' from deb grun (0.9.3+git20200303-3)
+  command 'srun' from deb slurm-client (23.02.6-1ubuntu2)
+  command 'runq' from deb exim4-daemon-heavy (4.97-4ubuntu4.6)
+  command 'runq' from deb exim4-daemon-light (4.97-4ubuntu4.6)
+  command 'runq' from deb sendmail-bin (8.17.2-1)
+  command 'rup' from deb rstat-client (4.0.1-11)
+  command 'zrun' from deb moreutils (0.67-1)
+  command 'zun' from deb python3-zunclient (4.7.0-0ubuntu1)
+  command 'crun' from deb crun (1.12-1)
+See 'snap info <snapname>' for additional versions.
+Command 'run' not found, did you mean:
+  command 'rue' from snap darkdimension-rue (1.0.7)
+  command 'rn' from deb trn4 (4.0-test77-16)
+  command 'grun' from deb grun (0.9.3+git20200303-3)
+  command 'runq' from deb exim4-daemon-heavy (4.97-4ubuntu4.6)
+  command 'runq' from deb exim4-daemon-light (4.97-4ubuntu4.6)
+  command 'runq' from deb sendmail-bin (8.17.2-1)
+  command 'rup' from deb rstat-client (4.0.1-11)
+  command 'crun' from deb crun (1.12-1)
+  command 'runc' from deb runc (1.3.4-0ubuntu1~24.04.1)
+  command 'zun' from deb python3-zunclient (4.7.0-0ubuntu1)
+  command 'srun' from deb slurm-client (23.02.6-1ubuntu2)
+  command 'zrun' from deb moreutils (0.67-1)
+See 'snap info <snapname>' for additional versions.
+exit
+
+Script done on 2026-08-22 17:06:19-03:00 [COMMAND_EXIT_CODE="127"]
+Script started on 2026-08-22 17:15:12-03:00 [TERM="xterm-256color" TTY="/dev/pts/5" COLUMNS="170" LINES="10"]
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mdate[27m
+[7mwhoami[27m
+[7mpwd[27m[A[A]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ date
+whoami
+pwd
+[?2004lSat Aug 22 17:15:26 -03 2026
+guilherme
+/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mmake[27m
+[7m./processflow[27m[A]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ make
+./processflow
+[?2004lmake: Nothing to be done for 'all'.
+processflow> task onde /bin/pwd
+workdir /tmp
+run onde
+workdir /tmp/processfloTarefa 'onde' cadastrada.
+processflow> Erro ao alterar diretorio: Success
+processflow> w_dir_inexistente_12345
+run onde/tmp
+Tarefa 'onde' terminou com codigo de saida 0
+processflow> Diretorio de trabalho alterado para '/tmp/processflow_dir_inexistente_12345'
+processflow> 
+/tmp
+Tarefa 'onde' terminou com codigo de saida 0
+processflow> task onde /bin/pwd
+workdir /tmp
+Tarefa 'onde' cadastrada.
+processflow> Erro ao alterar diretorio: No such file or directory
+processflow> run onde
+workdir /tmp/processflow_dir_inexistente_12345
+run onde/tmp
+Tarefa 'onde' terminou com codigo de saida 0
+processflow> Diretorio de trabalho alterado para '/tmp/processflow_dir_inexistente_12345'
+processflow> workdir
+Erro: tarefa 'ondeworkdir' nao encontrada
+processflow> exit
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mworkdir[27mworkdir
+[?2004lworkdir: command not found
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ /.[K[K./processFlow
+[?2004lprocessflow> workdir
+Erro: uso correto e 'workdir <diretorio>'
+Diretorio de trabalho alterado para '(null)'
+processflow> ./processflow
+Comando desconhecido: ./processflow
+processflow> task onde /bin/pwd
+Tarefa 'onde' cadastrada.
+processflow> workdir /tmp
+Erro ao alterar diretorio: Bad address
+processflow> run onde
+/tmp
+Tarefa 'onde' terminou com codigo de saida 0
+processflow> workdir /tmp/processflow_dir_inexistente_12345
+Diretorio de trabalho alterado para '/tmp/processflow_dir_inexistente_12345'
+processflow> run onde
+/tmp
+Tarefa 'onde' terminou com codigo de saida 0
+processflow> workdir
+Erro: uso correto e 'workdir <diretorio>'
+Diretorio de trabalho alterado para '(null)'
+processflow> exit
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mexit[27mexit
+[?2004lexit
+
+Script done on 2026-08-22 17:26:38-03:00 [COMMAND_EXIT_CODE="0"]
+Script started on 2026-08-22 21:22:28-03:00 [TERM="xterm-256color" TTY="/dev/pts/0" COLUMNS="134" LINES="10"]
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mdate[27mdate
+[?2004lSat Aug 22 21:22:33 -03 2026
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mmake[27mmake
+[?2004lgcc -Wall -Wextra -g main.c -o processflow
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7m./processflow[27m./processflow
+[?2004lprocessflow> task onde /bin/pwd
+Tarefa 'onde' cadastrada.
+processflow> workdir /tmp
+Diretorio de trabalho alterado para '/tmp'
+processflow> run onde
+/tmp
+Tarefa 'onde' terminou com codigo de saida 0
+processflow> workdir /tmp/processflow_dir_inexistente_12345
+Erro ao alterar diretorio: No such file or directory
+processflow> run onde
+/tmp
+Tarefa 'onde' terminou com codigo de saida 0
+processflow> workdir
+Erro: uso correto e 'workdir <diretorio>'
+processflow> exit
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mexit[27mexit
+[?2004lexit
+
+Script done on 2026-08-22 21:23:19-03:00 [COMMAND_EXIT_CODE="0"]
+Script started on 2026-08-23 11:34:44-03:00 [TERM="xterm-256color" TTY="/dev/pts/0" COLUMNS="94" LINES="10"]
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mdate[27mdate
+[?2004lSun Aug 23 11:34:50 -03 2026
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mmake[27mmake
+[?2004lgcc -Wall -Wextra -g main.c -o processflow
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7m./processflow[27m./processflow
+[?2004lprocessflow> task s1 /bin/sleep 2
+Tarefa 's1' cadastrada.
+processflow> task s2 /bin/sleep 2
+Tarefa 's2' cadastrada.
+processflow> task fantasma /bin/naoexiste123
+Tarefa 'fantasma' cadastrada.
+processflow> run sequential s1 s2
+Tarefa 's1' terminou com codigo de saida 0
+Tarefa 's2' terminou com codigo de saida 0
+processflow> run parallel s1 s2
+Tarefa 's1' (pid 1414) terminou com codigo de saida 0
+Tarefa 's2' (pid 1415) terminou com codigo de saida 0
+processflow> run parallel s1 fantasma
+Erro: nao foi possivel executar '/bin/naoexiste123': No such file or directory
+Tarefa 's1' (pid 1419) terminou com codigo de saida 0
+Tarefa 'fantasma' (pid 1420) terminou com codigo de saida 1
+processflow> exi
+Comando desconhecido: exi
+processflow> exit
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ exit
+[?2004lexit
+
+Script done on 2026-08-23 11:36:05-03:00 [COMMAND_EXIT_CODE="0"]
+Script started on 2026-08-23 11:47:18-03:00 [TERM="xterm-256color" TTY="/dev/pts/2" COLUMNS="87" LINES="10"]
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mdate[27mdate
+[?2004lSun Aug 23 11:47:22 -03 2026
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ exit
+[?2004lexit
+
+Script done on 2026-08-23 11:47:29-03:00 [COMMAND_EXIT_CODE="0"]
+Script started on 2026-08-23 12:26:28-03:00 [TERM="xterm-256color" TTY="/dev/pts/2" COLUMNS="87" LINES="10"]
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mdate[27mdate[7mdate[27mdate
+[?2004ldatedate: command not found
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mdate[27mdate
+[?2004lSun Aug 23 12:26:36 -03 2026
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mmake[27mmake
+[?2004lmake: Nothing to be done for 'all'.
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mecho "conteudo antigo" > [27m[7m/[27m[7mtmp/saida.txt[27m[A]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ echo "conteudo antigo" > /tmp/saida.txt
+[?2004l[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mecho "conteudo antigo 2" [27m[7m>[27m[7m /tmp/saida2.txt[27m[A]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ echo "conteudo antigo 2" > /tmp/saida2.txt
+[?2004l[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mecho "linha de entrada" >[27m[7m [27m[7m/tmp/entrada.txt[27m[A]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ echo "linha de entrada" > /tmp/entrada.txt
+[?2004l[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7m./processflow[27m./processflow
+[?2004lprocessflow> task t1 /bin/echo ola mundo
+Tarefa 't1' cadastrada.
+processflow> task t2 /bin/echo linha nova
+Tarefa 't2' cadastrada.
+processflow> task t3 /bin/cat
+Tarefa 't3' cadastrada.
+processflow> task ver1 /bin/cat /tmp/saida.txt
+Tarefa 'ver1' cadastrada.
+processflow> task ver2 /bin/cat /tmp/saida2.txt
+Tarefa 'ver2' cadastrada.
+processflow> run ver1
+conteudo antigo
+Tarefa 'ver1' terminou com codigo de saida 0
+processflow> run t1 output /tmp/saida.txt
+Tarefa 't1' terminou com codigo de saida 0
+processflow> run ver1
+conteudo antigo
+ola mundo
+Tarefa 'ver1' terminou com codigo de saida 0
+processflow> run ver2
+conteudo antigo 2
+Tarefa 'ver2' terminou com codigo de saida 0
+processflow> run t2 append /tmp/saida2.txt
+Tarefa 't2' terminou com codigo de saida 0
+processflow> run ver2
+linha nova
+Tarefa 'ver2' terminou com codigo de saida 0
+processflow> run t3 input /tmp/entrada.txt
+run t3 input /tmp/entrada.txt
+/bin/cat: write error: Bad file descriptor
+Tarefa 't3' terminou com codigo de saida 1
+processflow> exit
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ exit
+[?2004lexit
+
+Script done on 2026-08-23 12:28:52-03:00 [COMMAND_EXIT_CODE="0"]
+Script started on 2026-08-23 12:34:19-03:00 [TERM="xterm-256color" TTY="/dev/pts/2" COLUMNS="87" LINES="10"]
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ exit
+[?2004lexit
+
+Script done on 2026-08-23 12:34:28-03:00 [COMMAND_EXIT_CODE="0"]
+Script started on 2026-08-23 12:45:50-03:00 [TERM="xterm-256color" TTY="/dev/pts/2" COLUMNS="87" LINES="10"]
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mdate[27mdate
+[?2004lSun Aug 23 12:45:56 -03 2026
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mmake[27mmake
+[?2004lgcc -Wall -Wextra -g main.c -o processflow
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7m./processflow[27m./processflow
+[?2004lprocessflow> task t1 /bin/echo ola mundo
+Tarefa 't1' cadastrada.
+processflow> task t2 /bin/echo linha nova
+Tarefa 't2' cadastrada.
+processflow> task t3 /bin/cat
+Tarefa 't3' cadastrada.
+processflow> task ver1 /bin/cat /tmp/saida.txt
+Tarefa 'ver1' cadastrada.
+processflow> v task ver2 /bin/cat /tmp/saida2.txt
+Tarefa 'ver2' cadastrada.
+processflow> run t1 output /tmp/saida.txt
+Tarefa 't1' terminou com codigo de saida 0
+processflow> run ver1
+ola mundo
+Tarefa 'ver1' terminou com codigo de saida 0
+processflow> run t2 append /tmp/saida2.txt
+Tarefa 't2' terminou com codigo de saida 0
+processflow> run ver2
+linha nova
+linha nova
+Tarefa 'ver2' terminou com codigo de saida 0
+processflow> run t3 input /tmp/entrada.txt
+linha de entrada
+Tarefa 't3' terminou com codigo de saida 0
+processflow> run t3 input /tmp/entrada.txt
+linha de entrada
+Tarefa 't3' terminou com codigo de saida 0
+processflow> exit
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ exit
+[?2004lexit
+
+Script done on 2026-08-23 12:47:00-03:00 [COMMAND_EXIT_CODE="0"]
+Script started on 2026-08-23 15:51:40-03:00 [TERM="xterm-256color" TTY="/dev/pts/0" COLUMNS="94" LINES="10"]
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mdate[27mdate
+[?2004lSun Aug 23 15:51:43 -03 2026
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mmake[27mmake
+[?2004lmake: Nothing to be done for 'all'.
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7m./processflow[27m./processflow
+[?2004lprocessflow> task listar /bin/ls
+Tarefa 'listar' cadastrada.
+processflow> task contar /usr/bin/wc -l
+Tarefa 'contar' cadastrada.
+processflow> run pipe listar contar
+Tarefa 'listar' (pid 481) terminou com codigo de saida 0
+^C
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ exit
+[?2004lexit
+
+Script done on 2026-08-23 15:52:26-03:00 [COMMAND_EXIT_CODE="130"]
+Script started on 2026-08-23 15:55:19-03:00 [TERM="xterm-256color" TTY="/dev/pts/0" COLUMNS="94" LINES="10"]
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mdate[27mdate
+[?2004lSun Aug 23 15:55:22 -03 2026
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mmake[27mmake
+[?2004lgcc -Wall -Wextra -g main.c -o processflow
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7m./processflow[27m./processflow[7m./processflow[27m./processflow[7m./proc[27m[7me[27m[7mssflow[27m[A]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C./proce[1Pssflo[K[K[K[K[K[K[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[K
+[K[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K
+[?2004lprocessflow> task listar /bin/ls
+Tarefa 'listar' cadastrada.
+processflow> task contar /usr/bin/wc -l
+Tarefa 'contar' cadastrada.
+processflow> run pipe listar contar
+Tarefa 'listar' (pid 564) terminou com codigo de saida 0
+^C
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ exit
+[?2004lexit
+
+Script done on 2026-08-23 15:56:15-03:00 [COMMAND_EXIT_CODE="130"]
+Script started on 2026-08-23 16:12:50-03:00 [TERM="xterm-256color" TTY="/dev/pts/0" COLUMNS="94" LINES="10"]
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ date
+[?2004lSun Aug 23 16:12:52 -03 2026
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ make
+[?2004lgcc -Wall -Wextra -g main.c -o processflow
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ ./processflow
+[?2004lprocessflow> task listar /bin/ls
+Tarefa 'listar' cadastrada.
+processflow> task contar /us/bin  /wc -1 l
+Tarefa 'contar' cadastrada.
+processflow> run pipe listar contar
+Erro: nao foi possivel executar '/us/bin/wc': No such file or directory
+Tarefa 'contar' (pid 839) terminou com codigo de saida 1
+processflow> exit
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ exit
+[?2004lexit
+
+Script done on 2026-08-23 16:13:53-03:00 [COMMAND_EXIT_CODE="0"]
+Script started on 2026-08-23 16:30:36-03:00 [TERM="xterm-256color" TTY="/dev/pts/3" COLUMNS="194" LINES="10"]
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [K]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ date
+[?2004lSun Aug 23 16:30:52 -03 2026
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ make
+[?2004lgcc -Wall -Wextra -g main.c -o processflow
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ .?[K/processflow
+[?2004lprocessflow> task s1 /bin/sleep 3
+Tarefa 's1' cadastrada.
+processflow> start s1
+[1] 1073
+processflow> jobs
+[1] 1073 s1 Concluido codigo 0
+processflow> jobs
+[1] 1073 s1 Concluido codigo 0
+processflow> wait 99
+Erro: job 99 nao encontrado
+processflow> exit
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ exit
+[?2004lexit
+
+Script done on 2026-08-23 16:32:02-03:00 [COMMAND_EXIT_CODE="0"]
+Script started on 2026-08-23 16:33:15-03:00 [TERM="xterm-256color" TTY="/dev/pts/3" COLUMNS="87" LINES="10"]
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ date
+[?2004lSun Aug 23 16:33:17 -03 2026
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ task listar /i[Kbin/ls
+[?2004lCommand 'task' not found, but can be installed with:
+sudo snap install task         # version v3.51.1, or
+sudo apt  install taskwarrior  # version 2.6.2+dfsg-1
+See 'snap info task' for additional versions.
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ ./processflow
+[?2004lprocessflow> task listar /bin/ls' 
+Tarefa 'listar' cadastrada.
+processflow> task contar /usr/bin/wc -l
+Tarefa 'contar' cadastrada.
+processflow> run pipe listar contar
+7
+Tarefa 'listar' (pid 1152) terminou com codigo de saida 0
+Tarefa 'contar' (pid 1153) terminou com codigo de saida 0
+processflow> exit
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ exit
+[?2004lexit
+
+Script done on 2026-08-23 16:34:19-03:00 [COMMAND_EXIT_CODE="0"]
+Script started on 2026-08-23 17:23:46-03:00 [TERM="xterm-256color" TTY="/dev/pts/0" COLUMNS="94" LINES="10"]
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ date
+[?2004lSun Aug 23 17:23:48 -03 2026
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ make
+[?2004lgcc -Wall -Wextra -g main.c -o processflow
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7mprintf "task ola /bin/echo ola w[27m[7mo[27m[7mrkflow\nrun ola\ntask listar /bin/ls\ntask contar /usr/bin/wc -l\nrun pipe listar contar\nexi[27m[7mt[27m[7m\n" > teste.pf[27m[A[A]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ printf "task ola /bin/echo ola workflow\nrun ola\ntask listar /bin/ls\ntask contar /usr/bin/wc -l\nrun pipe listar contar\nexit\n" > teste.pf
+[?2004l[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7m./processflow teste.pf[27m./processflow teste.pf[7m./processf[27m[7ml[27m[7mow teste.pf[27m[A]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C./processfl[1Pow teste.p[K[K[K[K[K[K[K[K[K[K[K[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[K
+[K[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[7m./processflow teste.pf[27m./processflow teste.pf
+[?2004ltask ola /bin/echo ola workflow
+Tarefa 'ola' cadastrada.
+run ola
+ola workflow
+Tarefa 'ola' terminou com codigo de saida 0
+task listar /bin/ls
+Tarefa 'listar' cadastrada.
+task contar /usr/bin/wc -l
+Tarefa 'contar' cadastrada.
+run pipe listar contar
+8
+Tarefa 'listar' (pid 497) terminou com codigo de saida 0
+Tarefa 'contar' (pid 498) terminou com codigo de saida 0
+exit
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ [7m./processflow naoexiste.pf[27m./processflow naoexiste.pf
+[?2004lErro ao abrir arquivo de workflow: No such file or directory
+[?2004h]0;guilherme@pc: /mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[01;32mguilherme@pc[00m:[01;34m/mnt/c/Users/guilherme/OneDrive/Documentos/gsg4[00m$ exit
+[?2004lexit
+
+Script done on 2026-08-23 17:24:40-03:00 [COMMAND_EXIT_CODE="1"]
