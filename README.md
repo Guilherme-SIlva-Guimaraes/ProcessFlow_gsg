@@ -132,8 +132,6 @@ main.c
 makefile
 teste.pf
 evidencias.log
-ERROS_PIPE.md
-ERROS_REDIRECIONAMENTO.md
 README.md
 ```
 
@@ -141,5 +139,4 @@ README.md
 - makefile: automatiza compilacao, execucao e limpeza.
 - teste.pf: exemplo de arquivo de workflow.
 - evidencias.log: registro de testes feitos no terminal.
-- ERROS_PIPE.md: registro sobre erros e correcoes em pipes.
-- ERROS_REDIRECIONAMENTO.md: registro sobre erros e correcoes em redirecionamento.
+
